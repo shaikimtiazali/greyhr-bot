@@ -17,7 +17,7 @@ jobs:
         run: docker builder prune -a -f
 
       - name: Build Docker (Fresh)
-        run: docker build --pull --no-cache -t greyhr-bot .
+        run: docker build --no-cache -t greyhr-bot .
 
       - name: Debug Docker Images
         run: docker images
