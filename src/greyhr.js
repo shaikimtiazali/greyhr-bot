@@ -12,13 +12,23 @@ async function login(page) {
 
   await page.click("button[type='submit']");
 
-  // ✅ WAIT FOR UI (NOT navigation)
-  await Promise.race([
-    page.waitForSelector("text=Sign In", { timeout: 30000 }),
-    page.waitForSelector("text=Sign Out", { timeout: 30000 }),
-    page.waitForSelector("text=Attendance", { timeout: 30000 }),
-    page.waitForSelector("gt-button", { timeout: 30000 }),
-  ]);
+  // Wait a bit for response
+  await page.waitForTimeout(5000);
+
+  // 🔍 DEBUG INFO
+  const currentUrl = page.url();
+  console.log("🌐 Current URL after login:", currentUrl);
+
+  await page.screenshot({ path: "login-debug.png" });
+
+  // Try to detect dashboard
+  const isDashboard =
+    (await page.locator("text=Sign In").count()) > 0 ||
+    (await page.locator("text=Sign Out").count()) > 0;
+
+  if (!isDashboard) {
+    throw new Error("Login failed or dashboard not loaded");
+  }
 
   console.log("✅ Login successful");
 }
@@ -31,7 +41,7 @@ async function handleAttendance(page) {
 
   let button;
 
-  try { 
+  try {
     // Try best selector
     button = page.getByRole("button", {
       name: /sign in|sign out/i,
