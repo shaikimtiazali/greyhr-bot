@@ -4,7 +4,7 @@ async function login(page) {
   console.log("🔐 Logging into GreyHR...");
 
   await page.goto(process.env.GREYHR_URL, {
-    waitUntil: "networkidle",
+    waitUntil: "domcontentloaded",
   });
 
   await page.fill("#username", process.env.GREYHR_USERNAME);
