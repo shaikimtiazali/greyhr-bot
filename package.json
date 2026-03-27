@@ -1,0 +1,18 @@
+{
+  "name": "greyhr-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/actions/run.js",
+  "scripts": {
+    "start": "node src/actions/run.js"
+  },
+  "keywords": [],
+  "author": "Shaik Imtiaz Ali",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "nodemailer": "^8.0.3",
+    "playwright": "^1.58.2"
+  }
+}

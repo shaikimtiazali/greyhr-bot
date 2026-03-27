@@ -1,0 +1,48 @@
+# =========================
+# Node.js
+# =========================
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# =========================
+# Environment Variables (VERY IMPORTANT)
+# =========================
+.env
+.env.*
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# Playwright
+# =========================
+playwright-report/
+test-results/
+trace.zip
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+!.vscode/launch.json
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Misc
+# =========================
+*.tmp
+*.cache

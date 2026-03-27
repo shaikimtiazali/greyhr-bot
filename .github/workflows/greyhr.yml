@@ -1,0 +1,28 @@
+name: GreyHR Automation
+
+on:
+  schedule:
+    - cron: "30 5 * * 1-5"
+    - cron: "30 15 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker
+        run: docker build -t greyhr-bot .
+
+      - name: Run Bot
+        run: |
+          docker run \
+            -e GREYHR_URL=${{ secrets.GREYHR_URL }} \
+            -e GREYHR_USERNAME=${{ secrets.GREYHR_USERNAME }} \
+            -e GREYHR_PASSWORD=${{ secrets.GREYHR_PASSWORD }} \
+            -e EMAIL_USER=${{ secrets.EMAIL_USER }} \
+            -e EMAIL_PASS=${{ secrets.EMAIL_PASS }} \
+            -e EMAIL_TO=${{ secrets.EMAIL_TO }} \
+            greyhr-bot
