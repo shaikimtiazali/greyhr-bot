@@ -24,13 +24,22 @@ async function login(page) {
 }
 
 async function handleAttendance(page) {
-  await page.waitForLoadState("networkidle");
+  console.log("⏳ Waiting for dashboard...");
 
+  // Wait for dashboard container
+  await page.waitForSelector("gt-home-dashboard", { timeout: 30000 });
+
+  console.log("✅ Dashboard loaded");
+
+  // Extra buffer (important for GreyHR)
+  await page.waitForTimeout(3000);
+
+  // Now find button
   const button = page.getByRole("button", {
     name: /sign in|sign out/i,
   });
 
-  await button.waitFor({ timeout: 20000 });
+  await button.waitFor({ timeout: 30000 });
 
   const text = (await button.textContent()) || "";
   console.log("Detected button:", text);
@@ -46,8 +55,6 @@ async function handleAttendance(page) {
   } else {
     throw new Error("Unknown button state");
   }
-
-  await page.waitForTimeout(3000);
 
   return action;
 }
