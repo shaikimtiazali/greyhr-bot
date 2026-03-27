@@ -14,48 +14,52 @@ async function login(page) {
 
   // ✅ WAIT FOR UI (NOT navigation)
   await Promise.race([
-    page.waitForSelector("gt-home-dashboard", { timeout: 30000 }),
     page.waitForSelector("text=Sign In", { timeout: 30000 }),
     page.waitForSelector("text=Sign Out", { timeout: 30000 }),
+    page.waitForSelector("text=Attendance", { timeout: 30000 }),
+    page.waitForSelector("gt-button", { timeout: 30000 }),
   ]);
 
   console.log("✅ Login successful");
 }
 
 async function handleAttendance(page) {
-  console.log("⏳ Waiting for dashboard...");
+  console.log("⏳ Waiting for attendance button...");
 
-  // Wait for dashboard container
-  await page.waitForSelector("gt-home-dashboard", { timeout: 30000 });
+  // Give UI time to fully render
+  await page.waitForTimeout(4000);
 
-  console.log("✅ Dashboard loaded");
+  let button;
 
-  // Extra buffer (important for GreyHR)
-  await page.waitForTimeout(3000);
+  try { 
+    // Try best selector
+    button = page.getByRole("button", {
+      name: /sign in|sign out/i,
+    });
 
-  // Now find button
-  const button = page.getByRole("button", {
-    name: /sign in|sign out/i,
-  });
+    await button.waitFor({ timeout: 15000 });
+  } catch (err) {
+    console.log("⚠️ Role selector failed, trying fallback...");
 
-  await button.waitFor({ timeout: 30000 });
+    // Fallback for GreyHR Angular
+    button = page.locator("gt-button:has-text('Sign')");
+    await button.waitFor({ timeout: 15000 });
+  }
 
   const text = (await button.textContent()) || "";
   console.log("Detected button:", text);
 
-  let action = "";
-
   if (text.toLowerCase().includes("sign in")) {
     await button.click();
-    action = "Signed In";
-  } else if (text.toLowerCase().includes("sign out")) {
-    await button.click();
-    action = "Signed Out";
-  } else {
-    throw new Error("Unknown button state");
+    return "Signed In";
   }
 
-  return action;
+  if (text.toLowerCase().includes("sign out")) {
+    await button.click();
+    return "Signed Out";
+  }
+
+  throw new Error("Sign button not found");
 }
 
 module.exports = { login, handleAttendance };
