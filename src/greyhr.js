@@ -10,9 +10,14 @@ async function login(page) {
   await page.fill("#username", process.env.GREYHR_USERNAME);
   await page.fill("#password", process.env.GREYHR_PASSWORD);
 
-  await Promise.all([
-    page.click("button[type='submit']"),
-    page.waitForNavigation(),
+  // Click login (no navigation wait)
+  await page.click("button[type='submit']");
+
+  // ✅ Wait for dashboard (robust)
+  await Promise.race([
+    page.waitForSelector("text=Sign In", { timeout: 20000 }),
+    page.waitForSelector("text=Sign Out", { timeout: 20000 }),
+    page.waitForSelector("gt-button", { timeout: 20000 }),
   ]);
 
   console.log("✅ Login successful");
