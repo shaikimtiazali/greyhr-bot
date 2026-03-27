@@ -1,12 +1,12 @@
-FROM mcr.microsoft.com/playwright:latest
+FROM node:20
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
 
-COPY . .
+RUN npx playwright install --with-deps
 
-ENV NODE_ENV=production
+COPY . .
 
 CMD ["node", "src/actions/run.js"]

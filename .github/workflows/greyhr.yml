@@ -13,11 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker
-        run: docker build --no-cache -t greyhr-bot .
+      - name: Clean Docker Cache
+        run: docker builder prune -a -f
+
+      - name: Build Docker (Fresh)
+        run: docker build --pull --no-cache -t greyhr-bot .
+
+      - name: Debug Docker Images
+        run: docker images
 
       - name: Verify Playwright Version
-        run: docker run greyhr-bot npx playwright --version
+        run: docker run greyhr-bot node -e "console.log(require('playwright/package.json').version)"
 
       - name: Run Bot
         run: |
