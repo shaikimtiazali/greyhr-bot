@@ -1,46 +1,81 @@
+require("dotenv").config({ override: true });
+
 const launchBrowser = require("../browser");
 const { login, handleAttendance } = require("../greyhr");
 const sendMail = require("../mailer");
-const isHoliday = require("../holiday");
+const shouldSkipToday = require("../holiday");
 
 (async () => {
-  const { browser, page } = await launchBrowser();
+  // ─── Step 1: Check weekend / holiday BEFORE launching browser ───────────────
+  const { skip, reason } = shouldSkipToday();
 
+  if (skip) {
+    console.log(`${reason}`);
+    await sendMail("GreyHR Skipped", reason);
+    process.exit(0);
+  }
+
+  // ─── Step 2: Launch browser ──────────────────────────────────────────────────
+  let browser;
+  let page;
+
+  try {
+    ({ browser, page } = await launchBrowser());
+  } catch (launchErr) {
+    console.error("Failed to launch browser:", launchErr.message);
+    await sendMail(
+      "GreyHR Failure – Browser Launch Error",
+      `Could not launch browser.\n\nError: ${launchErr.message}`,
+    );
+    process.exit(1);
+  }
+
+  // ─── Step 3: Login + Attendance ──────────────────────────────────────────────
   try {
     console.log("Starting GreyHR automation...");
 
-    // 🎉 Holiday Check FIRST (no login needed)
-    const holiday = isHoliday();
-
-    if (holiday.isHoliday) {
-      const msg = `Today is a holiday: ${holiday.name}. Skipping attendance.`;
-
-      console.log(msg);
-
-      await sendMail("GreyHR Holiday", msg);
-      return;
-    }
-
-    // 🔐 Login only if working day
     await login(page);
 
-    // ✅ Attendance
     const action = await handleAttendance(page);
 
-    const message = `GreyHR ${action} successful at ${new Date().toLocaleString()}`;
+    const now = new Date().toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
+    const message = `GreyHR ${action} successful at ${now} (IST)`;
 
     console.log(message);
 
-    await sendMail("GreyHR Success", message);
+    await sendMail(`GreyHR – ${action} Successful`, message);
   } catch (err) {
     console.error("Error:", err.message);
 
-    await page.screenshot({ path: "error.png" });
+    // Take a screenshot if one wasn't already taken in login()
+    const screenshotPath = err.screenshotPath || "error.png";
+    if (!err.screenshotPath) {
+      try {
+        await page.screenshot({ path: screenshotPath });
+      } catch (_) {
+        // ignore secondary screenshot failure
+      }
+    }
 
-    await sendMail("GreyHR Failure", `Error: ${err.message}`);
+    const now = new Date().toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
+    const errorBody = [
+      `GreyHR automation failed at ${now} (IST).`,
+      ``,
+      `Error: ${err.message}`,
+      ``,
+      `Please check the attached screenshot for details.`,
+    ].join("\n");
+
+    await sendMail("GreyHR – Attendance Failed", errorBody, screenshotPath);
 
     process.exit(1);
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
 })();

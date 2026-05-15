@@ -9,13 +9,35 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendMail(subject, message) {
-  await transporter.sendMail({
+/**
+ * Send an email via Gmail SMTP.
+ * @param {string} subject - Email subject
+ * @param {string} message - Plain text body
+ * @param {string|null} screenshotPath - Optional path to screenshot file to attach
+ */
+async function sendMail(subject, message, screenshotPath = null) {
+  const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.EMAIL_TO,
     subject,
     text: message,
-  });
+  };
+
+  if (screenshotPath) {
+    mailOptions.attachments = [
+      {
+        filename: "screenshot.png",
+        path: screenshotPath,
+      },
+    ];
+  }
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent: "${subject}"`);
+  } catch (err) {
+    console.error("Failed to send email:", err.message);
+  }
 }
 
 module.exports = sendMail;

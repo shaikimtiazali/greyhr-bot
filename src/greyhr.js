@@ -1,10 +1,11 @@
 require("dotenv").config({ override: true });
 
 async function login(page) {
-  console.log("🔐 Logging into GreyHR...");
+  console.log("Logging into GreyHR...");
 
   await page.goto(process.env.GREYHR_URL, {
     waitUntil: "domcontentloaded",
+    timeout: 30000,
   });
 
   await page.fill("#username", process.env.GREYHR_USERNAME);
@@ -17,9 +18,11 @@ async function login(page) {
 
   // 🔍 DEBUG INFO
   const currentUrl = page.url();
-  console.log("🌐 Current URL after login:", currentUrl);
+  console.log("Current URL after login:", currentUrl);
 
-  await page.screenshot({ path: "login-debug.png" });
+  const screenshotPath = "login-debug.png";
+  await page.screenshot({ path: screenshotPath });
+  // await page.screenshot({ path: "login-debug.png" });
 
   // Try to detect dashboard
   const isDashboard =
@@ -30,11 +33,11 @@ async function login(page) {
     throw new Error("Login failed or dashboard not loaded");
   }
 
-  console.log("✅ Login successful");
+  console.log("Login successful");
 }
 
 async function handleAttendance(page) {
-  console.log("⏳ Waiting for attendance button...");
+  console.log("Waiting for attendance button...");
 
   // Give UI time to fully render
   await page.waitForTimeout(4000);
@@ -49,7 +52,7 @@ async function handleAttendance(page) {
 
     await button.waitFor({ timeout: 15000 });
   } catch (err) {
-    console.log("⚠️ Role selector failed, trying fallback...");
+    console.log("Role selector failed, trying fallback...");
 
     // Fallback for GreyHR Angular
     button = page.locator("gt-button:has-text('Sign')");
