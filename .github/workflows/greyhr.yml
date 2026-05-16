@@ -8,16 +8,6 @@ on:
     - cron: "30 5 * * 1-5"
     - cron: "0 15 * * 1-5"
 
-  workflow_dispatch:
-    inputs:
-      force_run:
-        description: "Force run even on weekends/holidays? (for testing)"
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
 jobs:
   run-bot:
     runs-on: ubuntu-latest
