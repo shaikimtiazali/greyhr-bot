@@ -7,6 +7,7 @@ RUN npm install
 
 COPY . .
 
+ENV TZ=Asia/Kolkata
 ENV NODE_ENV=production
 
 CMD ["node", "src/actions/run.js"]
