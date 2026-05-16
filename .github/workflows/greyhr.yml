@@ -1,37 +1,59 @@
 name: GreyHR Automation
 
 on:
-  # schedule:
-  #   - cron: "30 5 * * 1-5"
-  #   - cron: "30 15 * * 1-5"
+  schedule:
+    - cron: "30 3 * * 1-5" # → 9:00 AM IST  (UTC 03:30) — Sign In
+    - cron: "0 13 * * 1-5" # → 6:30 PM IST  (UTC 13:00) — Sign Out
   workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Clean Docker Cache
-        run: docker builder prune -a -f
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
 
-      - name: Build Docker (Fresh)
-        run: docker build --no-cache -t greyhr-bot .
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Debug Docker Images
-        run: docker images
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Verify Playwright Version
-        run: docker run greyhr-bot node -e "console.log(require('playwright/package.json').version)"
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
 
-      - name: Run Bot
-        run: |
-          docker run \
-            -e GREYHR_URL=${{ secrets.GREYHR_URL }} \
-            -e GREYHR_USERNAME=${{ secrets.GREYHR_USERNAME }} \
-            -e GREYHR_PASSWORD=${{ secrets.GREYHR_PASSWORD }} \
-            -e EMAIL_USER=${{ secrets.EMAIL_USER }} \
-            -e EMAIL_PASS=${{ secrets.EMAIL_PASS }} \
-            -e EMAIL_TO=${{ secrets.EMAIL_TO }} \
-            greyhr-bot
+      - name: Install Playwright OS dependencies (cached browser)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run GreyHR Bot
+        run: node src/actions/run.js
+        env:
+          TZ: Asia/Kolkata
+          GREYHR_URL: ${{ secrets.GREYHR_URL }}
+          GREYHR_USERNAME: ${{ secrets.GREYHR_USERNAME }}
+          GREYHR_PASSWORD: ${{ secrets.GREYHR_PASSWORD }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots-${{ github.run_number }}
+          path: "*.png"
+          retention-days: 7
