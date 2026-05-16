@@ -5,8 +5,9 @@ on:
     branches:
       - main
   schedule:
-    - cron: "30 5 * * 1-5"
-    - cron: "0 15 * * 1-5"
+    # - cron: "30 5 * * 1-5"
+    # - cron: "0 15 * * 1-5"
+    - cron: "* * * * *"
 
 jobs:
   run-bot:
