@@ -1,4 +1,4 @@
-require("dotenv").config({ override: true });
+require("dotenv").config({ override: true, quiet: true });
 
 const launchBrowser = require("../browser");
 const { login, handleAttendance } = require("../greyhr");

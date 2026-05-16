@@ -1,4 +1,4 @@
-require("dotenv").config({ override: true });
+require("dotenv").config({ override: true, quiet: true });
 
 async function login(page) {
   console.log("Logging into GreyHR...");
@@ -16,7 +16,7 @@ async function login(page) {
   // Wait a bit for response
   await page.waitForTimeout(5000);
 
-  // 🔍 DEBUG INFO
+  // DEBUG INFO
   const currentUrl = page.url();
   console.log("Current URL after login:", currentUrl);
 
