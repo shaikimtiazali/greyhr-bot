@@ -5,10 +5,19 @@ on:
     branches:
       - main
   schedule:
-    - cron: "30 3 * * 1-5" # → 9:00 AM IST  (UTC 03:30) — Sign In
-    - cron: "0 13 * * 1-5" # → 6:30 PM IST  (UTC 13:00) — Sign Out
-  workflow_dispatch:
+    - cron: "30 5 * * 1-5"
+    - cron: "0 15 * * 1-5"
 
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: "Force run even on weekends/holidays? (for testing)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 jobs:
   run-bot:
     runs-on: ubuntu-latest
