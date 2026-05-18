@@ -1,12 +1,11 @@
 name: GreyHR Automation
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+
   schedule:
     - cron: "30 5 * * 1-5"
-    - cron: "0 15 * * 1-5"
+    - cron: "30 15 * * 1-5"
 
 jobs:
   run-bot:
@@ -20,7 +19,7 @@ jobs:
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -40,6 +39,11 @@ jobs:
       - name: Install Playwright OS dependencies (cached browser)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
+
+      - name: Show IST time (debug)
+        run: |
+          echo "UTC Time: $(date -u)"
+          echo "IST Time: $(TZ='Asia/Kolkata' date)"
 
       - name: Run GreyHR Bot
         run: node src/actions/run.js

@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config({ override: true, quiet: true });
+const logger = require("./utils/logger");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -34,9 +35,9 @@ async function sendMail(subject, message, screenshotPath = null) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`Email sent: "${subject}"`);
+    logger.info(`Email sent: "${subject}"`);
   } catch (err) {
-    console.error("Failed to send email:", err.message);
+    logger.error("Failed to send email:", err.message);
   }
 }
 
