@@ -4,13 +4,14 @@ const launchBrowser = require("../browser");
 const { login, handleAttendance } = require("../greyhr");
 const sendMail = require("../mailer");
 const shouldSkipToday = require("../holiday");
+const logger = require("../utils/logger");
 
 (async () => {
   // ─── Step 1: Check weekend / holiday BEFORE launching browser ───────────────
   const { skip, reason } = shouldSkipToday();
 
   if (skip) {
-    console.log(`${reason}`);
+    logger.info(`${reason}`);
     await sendMail("GreyHR Skipped", reason);
     process.exit(0);
   }
@@ -22,7 +23,7 @@ const shouldSkipToday = require("../holiday");
   try {
     ({ browser, page } = await launchBrowser());
   } catch (launchErr) {
-    console.error("Failed to launch browser:", launchErr.message);
+    logger.error("Failed to launch browser:", launchErr.message);
     await sendMail(
       "GreyHR Failure – Browser Launch Error",
       `Could not launch browser.\n\nError: ${launchErr.message}`,
@@ -32,7 +33,7 @@ const shouldSkipToday = require("../holiday");
 
   // ─── Step 3: Login + Attendance ──────────────────────────────────────────────
   try {
-    console.log("Starting GreyHR automation...");
+    logger.info("Starting GreyHR automation...");
 
     await login(page);
 
@@ -43,11 +44,11 @@ const shouldSkipToday = require("../holiday");
     });
     const message = `GreyHR ${action} successful at ${now} (IST)`;
 
-    console.log(message);
+    logger.info(message);
 
     await sendMail(`GreyHR – ${action} Successful`, message);
   } catch (err) {
-    console.error("Error:", err.message);
+    logger.error("Error:", err.message);
 
     // Take a screenshot if one wasn't already taken in login()
     const screenshotPath = err.screenshotPath || "error.png";
