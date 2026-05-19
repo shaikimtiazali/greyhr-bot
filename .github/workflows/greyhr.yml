@@ -4,8 +4,15 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "30 5 * * 1-5"
-    - cron: "30 15 * * 1-5"
+    - cron: "* * * * 1-5"
+    - cron: "*/5 * * * 1-5"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: greyhr-bot
+  cancel-in-progress: false
 
 jobs:
   run-bot:
@@ -16,7 +23,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: "22"
