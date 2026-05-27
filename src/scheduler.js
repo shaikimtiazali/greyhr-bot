@@ -28,12 +28,12 @@ const runBot = () => {
 // 9:00 PM IST = 3:30 PM UTC → cron in UTC
 // Render runs in UTC
 
-cron.schedule("* * * * 1-5", () => {
+cron.schedule("30 3 * * 1-5", () => {
   console.log(`${LOG_PREFIX()} Triggered: 9:00 AM IST job`);
   runBot();
 });
 
-cron.schedule("*/2 * * * 1-5", () => {
+cron.schedule("30 15 * * 1-5", () => {
   console.log(`${LOG_PREFIX()} Triggered: 9:00 PM IST job`);
   runBot();
 });
