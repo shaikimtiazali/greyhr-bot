@@ -1,0 +1,24 @@
+services:
+  - type: worker
+    name: greyhr-bot
+    runtime: node
+    plan: free
+    buildCommand: |
+      npm ci
+      npx playwright install --with-deps chromium
+    startCommand: npm start
+    envVars:
+      - key: TZ
+        value: UTC
+      - key: GREYHR_URL
+        sync: false
+      - key: GREYHR_USERNAME
+        sync: false
+      - key: GREYHR_PASSWORD
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_TO
+        sync: false
