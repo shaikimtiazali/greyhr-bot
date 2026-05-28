@@ -2,21 +2,16 @@ const nodemailer = require("nodemailer");
 require("dotenv").config({ override: true, quiet: true });
 const logger = require("./utils/logger");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-/**
- * Send an email via Gmail SMTP.
- * @param {string} subject - Email subject
- * @param {string} message - Plain text body
- * @param {string|null} screenshotPath - Optional path to screenshot file to attach
- */
 async function sendMail(subject, message, screenshotPath = null) {
+  // ── KEY FIX: create transporter per call, not at module load ──
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.EMAIL_TO,
@@ -37,7 +32,11 @@ async function sendMail(subject, message, screenshotPath = null) {
     await transporter.sendMail(mailOptions);
     logger.info(`Email sent: "${subject}"`);
   } catch (err) {
-    logger.error("Failed to send email:", err.message);
+    // ── Better error detail ──
+    logger.error(`Failed to send email: ${err.message}`);
+    logger.error(
+      `Email config — user: ${process.env.EMAIL_USER}, to: ${process.env.EMAIL_TO}`,
+    );
   }
 }
 

@@ -5,7 +5,8 @@
   "main": "src/actions/run.js",
   "scripts": {
     "start": "node src/scheduler.js",
-    "bot": "node src/actions/run.js"
+    "bot": "node src/actions/run.js",
+    "test:run": "node src/test-run.js"
   },
   "keywords": [],
   "author": "Shaik Imtiaz Ali",
