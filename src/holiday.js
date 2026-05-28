@@ -1,19 +1,25 @@
 const holidays = require("./holidays");
 
-/**
- * Returns today's date in YYYY-MM-DD format (local time).
- */
+// ── FIX: was using local time, must use IST explicitly ──
+// On Render (UTC), new Date().getDay() returns UTC day, not IST day
+// E.g. Sunday IST midnight = Saturday UTC — would not skip correctly
+
+function getTodayIST() {
+  const now = new Date();
+  const ist = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+  );
+  return ist;
+}
+
 function getTodayDate() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
+  const ist = getTodayIST();
+  const yyyy = ist.getFullYear();
+  const mm = String(ist.getMonth() + 1).padStart(2, "0");
+  const dd = String(ist.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 
-/**
- * Returns the day of week name for today.
- */
 function getTodayDayName() {
   const days = [
     "Sunday",
@@ -24,25 +30,22 @@ function getTodayDayName() {
     "Friday",
     "Saturday",
   ];
-  return days[new Date().getDay()];
+  return days[getTodayIST().getDay()]; // ← uses IST day, not UTC day
 }
 
-/**
- * Checks if today should be skipped (weekend or public holiday).
- * @returns {{ skip: boolean, reason: string }}
- */
 function shouldSkipToday() {
   const dayName = getTodayDayName();
+  const today = getTodayDate();
+  logger.info(`Checking skip: ${dayName} ${today} (IST)`); // visible in logs
 
-  // Skip Saturday and Sunday
   if (dayName === "Saturday" || dayName === "Sunday") {
-    return { skip: true, reason: `Today is ${dayName}. Skipping attendance.` };
+    return {
+      skip: true,
+      reason: `Today is ${dayName} (IST). Skipping attendance.`,
+    };
   }
 
-  // Check public holidays
-  const today = getTodayDate();
   const holiday = holidays.find((h) => h.holidayDate === today);
-
   if (holiday) {
     return {
       skip: true,
@@ -52,5 +55,8 @@ function shouldSkipToday() {
 
   return { skip: false, reason: "" };
 }
+
+// ── add logger since we now log inside this file ──
+const logger = require("./utils/logger");
 
 module.exports = shouldSkipToday;
