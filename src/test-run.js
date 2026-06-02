@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+const { execSync } = require("child_process");
 
 console.log("Manual test run triggered...");
 execSync("node src/actions/run.js", {
