@@ -48,15 +48,14 @@ const logger = require("../utils/logger");
 
     await sendMail(`GreyHR – ${action} Successful`, message);
   } catch (err) {
-    logger.error("Error:", err.message);
-
-    // Take a screenshot if one wasn't already taken in login()
-    const screenshotPath = err.screenshotPath || "error.png";
-    if (!err.screenshotPath) {
+    logger.error("Automation failed: " + (err.message || "Unknown error"));
+    const screenshotPath = err.screenshotPath || null;
+    if (!screenshotPath) {
+      screenshotPath = "error.png";
       try {
         await page.screenshot({ path: screenshotPath });
-      } catch (_) {
-        // ignore secondary screenshot failure
+      } catch (ssErr) {
+        screenshotPath = null;
       }
     }
 
