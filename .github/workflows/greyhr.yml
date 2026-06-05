@@ -12,6 +12,9 @@ concurrency:
   group: greyhr-bot
   cancel-in-progress: false
 
+env:
+FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   run-bot:
     runs-on: ubuntu-latest
@@ -62,7 +65,7 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
 
       - name: Upload failure screenshots
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: failure-screenshots-${{ github.run_number }}
