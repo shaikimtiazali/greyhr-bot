@@ -49,7 +49,7 @@ const logger = require("../utils/logger");
     await sendMail(`GreyHR – ${action} Successful`, message);
   } catch (err) {
     logger.error("Automation failed: " + (err.message || "Unknown error"));
-    const screenshotPath = err.screenshotPath || null;
+    let screenshotPath = err.screenshotPath || null;
     if (!screenshotPath) {
       screenshotPath = "error.png";
       try {

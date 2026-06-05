@@ -11,7 +11,7 @@ async function login(page) {
     waitUntil: "domcontentloaded",
     timeout: 60000,
   });
-  logger.debug("Page loaded: " + page.url());
+  logger.debug(`Page loaded: ${page.url()}`);
 
   // Wait for Angular splash screen to disappear
   try {
@@ -20,8 +20,8 @@ async function login(page) {
       timeout: 30000,
     });
     logger.debug("Splash screen cleared");
-  } catch (_) {
-    logger.debug("No splash screen — continuing");
+  } catch (err) {
+    logger.debug(`Splash screen check skipped: ${err.message}`);
   }
 
   // Wait for login form
@@ -56,12 +56,7 @@ async function login(page) {
       .count();
 
     logger.debug(
-      "Waiting... | SignIn: " +
-        signInCount +
-        " | SignOut: " +
-        signOutCount +
-        " | URL: " +
-        url,
+      `Waiting... | SignIn: ${signInCount} | SignOut: ${signOutCount} | URL: ${url}`,
     );
 
     // Either button visible and we're off the login page = success
@@ -111,8 +106,9 @@ async function handleAttendance(page) {
     await roleBtn.waitFor({ state: "visible", timeout: 20000 });
     button = roleBtn;
     logger.debug("Button found via role selector");
-  } catch (_) {
-    logger.warn("Role selector failed, trying fallbacks...");
+  } catch (err) {
+    logger.warn(`Role selector failed: ${err.message}`);
+    logger.warn("Trying fallbacks...");
 
     const fallbacks = [
       "gt-button:has-text('Sign In')",
@@ -128,7 +124,9 @@ async function handleAttendance(page) {
         button = el;
         logger.debug("Button found via: " + sel);
         break;
-      } catch (_) {}
+      } catch (err) {
+        logger.debug(`Fallback failed for ${sel}: ${err.message}`);
+      }
     }
   }
 
