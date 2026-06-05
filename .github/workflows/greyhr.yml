@@ -67,7 +67,7 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
 
       - name: Upload Screenshots
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: failure-screenshots-${{ github.run_number }}
