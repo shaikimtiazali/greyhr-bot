@@ -46,3 +46,8 @@ docker-compose.override.yml
 # =========================
 *.tmp
 *.cache
+# =========================
+# Screenshots (auto-generated, never commit)
+# =========================
+screenshots/*.png
+screenshots/*.jpg

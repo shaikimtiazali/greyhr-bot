@@ -1,4 +1,5 @@
 const holidays = require("./holidays");
+const logger = require("./utils/logger");
 
 // ── FIX: was using local time, must use IST explicitly ──
 // On Render (UTC), new Date().getDay() returns UTC day, not IST day
@@ -55,8 +56,5 @@ function shouldSkipToday() {
 
   return { skip: false, reason: "" };
 }
-
-// ── add logger since we now log inside this file ──
-const logger = require("./utils/logger");
 
 module.exports = shouldSkipToday;

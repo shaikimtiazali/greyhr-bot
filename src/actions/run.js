@@ -1,17 +1,22 @@
 require("dotenv").config({ override: true, quiet: true });
 
+const fs = require("fs");
+const path = require("path");
 const launchBrowser = require("../browser");
 const { login, handleAttendance } = require("../greyhr");
 const sendMail = require("../mailer");
 const shouldSkipToday = require("../holiday");
 const logger = require("../utils/logger");
 
+const SS_DIR = path.resolve(process.cwd(), "screenshots");
+if (!fs.existsSync(SS_DIR)) fs.mkdirSync(SS_DIR, { recursive: true });
+
 (async () => {
-  // ─── Step 1: Check weekend / holiday BEFORE launching browser ───────────────
+  // ─── Step 1: Check weekend / holiday ────────────────────────────────────────
   const { skip, reason } = shouldSkipToday();
 
   if (skip) {
-    logger.info(`${reason}`);
+    logger.info(reason);
     await sendMail("GreyHR Skipped", reason);
     process.exit(0);
   }
@@ -23,7 +28,7 @@ const logger = require("../utils/logger");
   try {
     ({ browser, page } = await launchBrowser());
   } catch (launchErr) {
-    logger.error("Failed to launch browser:", launchErr.message);
+    logger.error("Failed to launch browser: " + launchErr.message);
     await sendMail(
       "GreyHR Failure – Browser Launch Error",
       `Could not launch browser.\n\nError: ${launchErr.message}`,
@@ -43,18 +48,18 @@ const logger = require("../utils/logger");
       timeZone: "Asia/Kolkata",
     });
     const message = `GreyHR ${action} successful at ${now} (IST)`;
-
     logger.info(message);
 
     await sendMail(`GreyHR – ${action} Successful`, message);
   } catch (err) {
     logger.error("Automation failed: " + (err.message || "Unknown error"));
-    const screenshotPath = err.screenshotPath || null;
+
+    let screenshotPath = err.screenshotPath || null;
     if (!screenshotPath) {
-      screenshotPath = "error.png";
+      screenshotPath = path.join(SS_DIR, "error.png");
       try {
         await page.screenshot({ path: screenshotPath });
-      } catch (ssErr) {
+      } catch (_) {
         screenshotPath = null;
       }
     }
@@ -65,17 +70,17 @@ const logger = require("../utils/logger");
     const errorBody = [
       `GreyHR automation failed at ${now} (IST).`,
       ``,
-      `Error: ${err.message}`,
+      `Error: ${err.message || "Unknown error"}`,
       ``,
-      `Please check the attached screenshot for details.`,
+      screenshotPath
+        ? "Please check the attached screenshot for details."
+        : "Screenshot could not be captured.",
     ].join("\n");
 
     await sendMail("GreyHR – Attendance Failed", errorBody, screenshotPath);
 
     process.exit(1);
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    if (browser) await browser.close();
   }
 })();
