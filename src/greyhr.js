@@ -4,10 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const logger = require("./utils/logger");
 
-// All screenshots saved here — folder is in .gitignore
 const SS_DIR = path.resolve(process.cwd(), "screenshots");
 if (!fs.existsSync(SS_DIR)) fs.mkdirSync(SS_DIR, { recursive: true });
-
 const ss = (name) => path.join(SS_DIR, name);
 
 async function login(page) {
@@ -42,9 +40,13 @@ async function login(page) {
   await page.click("button[type='submit']");
   logger.info("Login submitted — polling for dashboard...");
 
-  const deadline = Date.now() + 90000;
+  // Increased to 120s — Render network is slower than local/GitHub Actions
+  const TIMEOUT_MS = 120000;
+  const deadline = Date.now() + TIMEOUT_MS;
+  let attempt = 0;
 
   while (Date.now() < deadline) {
+    attempt++;
     const url = page.url();
     const signOutCount = await page
       .locator("button:has-text('Sign Out'), gt-button:has-text('Sign Out')")
@@ -52,16 +54,23 @@ async function login(page) {
     const signInCount = await page
       .locator("button:has-text('Sign In'), gt-button:has-text('Sign In')")
       .count();
+    const remaining = Math.round((deadline - Date.now()) / 1000);
 
-    logger.info(`Polling — SignIn: ${signInCount} | SignOut: ${signOutCount} `);
+    logger.info(
+      `Poll #${attempt} | SignIn: ${signInCount} | SignOut: ${signOutCount} | ${remaining}s left`,
+    );
 
+    // Success — attendance button visible and past the login page
     if ((signOutCount > 0 || signInCount > 0) && !url.includes("/login")) {
-      break;
+      await page.screenshot({ path: ss("dashboard.png") });
+      logger.info("Login successful");
+      return;
     }
 
+    // Wrong credentials — still on login page after 3 attempts (9s)
     if (
+      attempt > 3 &&
       url.includes("/login") &&
-      Date.now() > deadline - 80000 &&
       signInCount > 0 &&
       signOutCount === 0
     ) {
@@ -75,20 +84,16 @@ async function login(page) {
     }
 
     await page.waitForTimeout(3000);
-
-    if (Date.now() >= deadline) {
-      const p = ss("login-timeout.png");
-      await page.screenshot({ path: p });
-      const err = new Error(
-        "Dashboard did not load within 90s — OAuth redirect may have failed.",
-      );
-      err.screenshotPath = p;
-      throw err;
-    }
   }
 
-  await page.screenshot({ path: ss("dashboard.png") });
-  logger.info("Login successful");
+  // Timed out
+  const p = ss("login-timeout.png");
+  await page.screenshot({ path: p });
+  const err = new Error(
+    `Dashboard did not load within ${TIMEOUT_MS / 1000}s — OAuth redirect may have failed.`,
+  );
+  err.screenshotPath = p;
+  throw err;
 }
 
 async function handleAttendance(page) {

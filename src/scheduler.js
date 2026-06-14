@@ -16,7 +16,7 @@ const runBot = () => {
         ...process.env,
         TZ: "Asia/Kolkata",
       },
-      timeout: 20 * 60 * 1000, // 20 minutes
+      timeout: 25 * 60 * 1000, // 25 minutes
     });
     console.log(`${LOG_PREFIX()} Bot finished successfully.`);
   } catch (err) {
